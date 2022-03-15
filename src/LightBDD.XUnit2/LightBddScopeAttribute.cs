@@ -4,6 +4,7 @@ using LightBDD.Core.Formatting.ExceptionFormatting;
 using LightBDD.Framework.Configuration;
 using LightBDD.XUnit2.Configuration;
 using LightBDD.XUnit2.Implementation;
+using Xunit.Abstractions;
 using Xunit.Sdk;
 
 namespace LightBDD.XUnit2
@@ -19,16 +20,16 @@ namespace LightBDD.XUnit2
     [AttributeUsage(AttributeTargets.Assembly)]
     public class LightBddScopeAttribute : Attribute, ITestFrameworkAttribute
     {
-        internal void SetUp()
+        internal void SetUp(IMessageSink messageSink)
         {
-            XUnit2FeatureCoordinator.InstallSelf(Configure());
-            OnSetUp();
+            XUnit2FeatureCoordinator.InstallSelf(Configure(messageSink));
+            OnSetUp(messageSink);
         }
 
         /// <summary>
         /// Allows to execute additional actions after LightBDD scope initialization
         /// </summary>
-        protected virtual void OnSetUp() { }
+        protected virtual void OnSetUp(IMessageSink messageSink) { }
 
         internal void TearDown()
         {
@@ -53,11 +54,12 @@ namespace LightBDD.XUnit2
         /// Allows to customize LightBDD configuration.
         /// </summary>
         /// <param name="configuration">Configuration to customize.</param>
-        protected virtual void OnConfigure(LightBddConfiguration configuration)
+        /// <param name="messageSink">The message sink used to send diagnostic messages.</param>
+        protected virtual void OnConfigure(LightBddConfiguration configuration, IMessageSink messageSink)
         {
         }
 
-        private LightBddConfiguration Configure()
+        private LightBddConfiguration Configure(IMessageSink messageSink)
         {
             var configuration = new LightBddConfiguration().WithFrameworkDefaults();
 
@@ -73,7 +75,7 @@ namespace LightBDD.XUnit2
             configuration.ExecutionExtensionsConfiguration()
                 .EnableScenarioDecorator<TestSkippedDecorator>();
 
-            OnConfigure(configuration);
+            OnConfigure(configuration, messageSink);
             return configuration;
         }
     }
